@@ -76,4 +76,6 @@
         </dependency>
     </dependencies>
 
+    <packaging>jar</packaging>
+
 </project>

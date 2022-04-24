@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="indi.hades.server.mapper.MenuMapper">
+<mapper namespace="indi.hadeslock.server.mapper.MenuMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="indi.hades.server.model.entity.Menu">
+    <resultMap id="BaseResultMap" type="indi.hadeslock.server.model.entity.Menu">
         <id column="id" property="id" />
         <result column="url" property="url" />
         <result column="path" property="path" />
@@ -13,9 +13,59 @@
         <result column="icon" property="icon" />
     </resultMap>
 
+    <resultMap id="Menus" type="indi.hadeslock.server.model.entity.Menu" extends="BaseResultMap">
+        <collection property="children" ofType="indi.hadeslock.server.model.entity.Menu">
+            <id column="child_id" property="id"/>
+            <result column="child_url" property="url"/>
+            <result column="child_path" property="path"/>
+            <result column="child_name" property="name"/>
+            <result column="child_parent_id" property="parent_id" />
+            <result column="child_component" property="component"/>
+        </collection>
+    </resultMap>
+
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         id, url, path, name, parent_id, component, icon
     </sql>
 
+    <!--根据已登录用户id查询菜单列表-->
+    <select id="getMenusById" resultMap="Menus">
+        SELECT DISTINCT parent.*,
+                        child.id          AS child_id,
+                        child.url         AS child_url,
+                        child.path        AS child_path,
+                        child.component   AS child_component,
+                        child.name        AS child_name
+        FROM t_menu parent,
+             t_menu child,
+             t_user_role ur,
+             t_menu_role mr
+        WHERE parent.id = child.parent_id
+          AND ur.user_id = #{id}
+          AND ur.role_id = mr.role_id
+          AND mr.menu_id = child.id
+        ORDER BY child.id
+    </select>
+
+    <!-- 获取所有菜单和角色之间的映射关系，一个菜单对应了多个角色，即可以被多个角色访问 -->
+    <resultMap id="MenusWithRoles" type="indi.hadeslock.server.model.entity.Menu" extends="BaseResultMap">
+        <collection property="roles" ofType="indi.hadeslock.server.model.entity.Role">
+            <id column="rid" property="id"/>
+            <result column="rname" property="name"/>
+        </collection>
+    </resultMap>
+    <select id="getMenusByRoles" resultMap="MenusWithRoles">
+        SELECT
+            m.*,
+            r.id AS rid,
+            r.`name` AS rname
+        FROM
+            t_menu m,
+            t_menu_role mr,
+            t_role r
+        WHERE m.id = mr.`menu_id`
+          AND mr.role_id = r.id
+        ORDER BY m.id
+    </select>
 </mapper>

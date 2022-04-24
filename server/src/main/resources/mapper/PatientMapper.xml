@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="indi.hades.server.mapper.PatientMapper">
+<mapper namespace="indi.hadeslock.server.mapper.PatientMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="indi.hades.server.model.entity.Patient">
+    <resultMap id="BaseResultMap" type="indi.hadeslock.server.model.entity.Patient">
         <id column="id" property="id" />
         <result column="name" property="name" />
         <result column="age" property="age" />
@@ -16,5 +16,12 @@
     <sql id="Base_Column_List">
         id, name, age, gender, position, identity
     </sql>
+
+    <select id="getAllPateints" resultType="indi.hadeslock.server.model.entity.Patient">
+        SELECT p.*
+        FROM t_patient p
+                 LEFT JOIN t_user_patient up ON p.id=up.`patient_id`
+        WHERE up.`user_id` = #{userId}
+    </select>
 
 </mapper>
