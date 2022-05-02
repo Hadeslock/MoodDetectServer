@@ -56,11 +56,24 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, Device> impleme
     @Override
     @Transactional(rollbackFor=RuntimeException.class)
     public int addDevice(Device device) {
-        deviceMapper.insert(device);
-        UserDevice userDevice = new UserDevice();
-        userDevice.setUser_id(userService.getAuthUser().getId());
-        userDevice.setDevice_id(device.getId());
-        userDeviceMapper.insert(userDevice);
+        //先对设备绑定状态进行验证
+        int bindResult = ifDeviceExist(device);
+        if(bindResult >= 2){
+            return bindResult;
+        }
+        //设备不存在才插入设备表
+        if(bindResult == 0)
+            deviceMapper.insert(device);
+        //插入设备用户连接表
+        if(bindResult == 0 || bindResult == 1){
+            //获取设备在数据库中的id
+            Device existDevice = deviceMapper.selectOne(
+                    new QueryWrapper<Device>().eq("device_id", device.getDevice_id()));
+            UserDevice userDevice = new UserDevice();
+            userDevice.setUser_id(userService.getAuthUser().getId());
+            userDevice.setDevice_id(existDevice.getId());
+            userDeviceMapper.insert(userDevice);
+        }
         return -1;
     }
 
@@ -73,9 +86,8 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, Device> impleme
     @Transactional(rollbackFor=RuntimeException.class)
     public int deleteDevice(Integer id) {
         //删除联结表的数据
-        userDeviceMapper.delete(new QueryWrapper<UserDevice>().eq("device_id", id));
-        //删除设备数据并返回删除影响行数
-        return deviceMapper.deleteById(id);
+        return userDeviceMapper.delete(new QueryWrapper<UserDevice>().eq("device_id", id));
+
     }
 
     /*
@@ -110,7 +122,7 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, Device> impleme
      * @author hadeslock
      * @date 2022/4/18 16:07
      * @param device 要校验的设备信息
-     * @return int 0-未绑定 1-已被其他用户绑定 2-已被登录用户绑定
+     * @return int 0-设备不存在 1-已存在但未绑定 2-已被其他用户绑定 3-已被登录用户绑定
      */
     public int ifDeviceExist(Device device){
         //查询设备表里面是否存在设备mac对应的设备
@@ -124,12 +136,15 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, Device> impleme
             //去设备和用户的关联表查记录
             UserDevice userDevice = userDeviceMapper.selectOne(
                     new QueryWrapper<UserDevice>().eq("device_id", boundDevice.getId()));
+            if(userDevice == null){
+                return 1;
+            }
             User authUser = userService.getAuthUser(); //已登录用户
             if(!Objects.equals(userDevice.getUser_id(), authUser.getId())){
                 //设备不属于已登录用户
-                return 1;
-            }else{
                 return 2;
+            }else{
+                return 3;
             }
         }
     }

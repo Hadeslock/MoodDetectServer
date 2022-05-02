@@ -48,13 +48,6 @@ public class DeviceController {
     })
     @PostMapping("/addDevice")
     public RespBean addDevice(@RequestBody Device device){
-        //先对设备绑定状态进行验证
-        int bindResult = deviceService.ifDeviceExist(device);
-        if(bindResult == 1){
-            return RespBean.error("设备已被其他用户绑定");
-        }else if(bindResult == 2){
-            return RespBean.error("你已经绑定过该设备");
-        }
         //尝试添加设备记录
         int addResult;
         try {
@@ -66,6 +59,11 @@ public class DeviceController {
         }
         if(addResult == -1){
             return RespBean.success("绑定设备成功");
+        }
+        if(addResult == 2){
+            return RespBean.error("设备已被其他用户绑定");
+        }else if(addResult == 3){
+            return RespBean.error("你已经绑定过该设备");
         }
         return RespBean.error("绑定设备失败");
     }
@@ -80,28 +78,28 @@ public class DeviceController {
         }
     }
 
-    @ApiOperation(value = "删除设备")
+    @ApiOperation(value = "解绑设备")
     @PutMapping("/{id}")
-    public RespBean deleteDevice(@PathVariable Integer id){
+    public RespBean unbindDevice(@PathVariable Integer id){
         //先检查要删除的设备是否是已登录用户的，超级管理员也可删除
         if(!deviceService.validate(id)){
-            return RespBean.error("删除设备权限不足");
+            return RespBean.error("解绑设备权限不足");
         }
-        //删除设备
-        int res = 0;
+        //解绑设备
+        int res;
         try {
             res = deviceService.deleteDevice(id);
         } catch (Exception e) {
             e.printStackTrace();
-            log.error("删除设备事务失败");
+            return RespBean.error("解绑设备失败");
         }
         //检查删除的结果
         if(res == 1){
-            return RespBean.success("删除设备成功");
+            return RespBean.success("解绑设备成功");
         }else if(res == 0){
             return RespBean.error("设备id不存在");
         }else{
-            return RespBean.error("删除设备失败");
+            return RespBean.error("解绑设备失败");
         }
     }
 }

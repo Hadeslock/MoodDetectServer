@@ -3,10 +3,8 @@ package indi.hadeslock.server.controller;
 
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import indi.hadeslock.server.model.entity.Patient;
-import indi.hadeslock.server.model.entity.User;
 import indi.hadeslock.server.model.pojo.RespBean;
 import indi.hadeslock.server.service.IPatientService;
-import indi.hadeslock.server.service.IUserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -30,15 +28,12 @@ import java.util.List;
 public class PatientController {
 
     @Autowired
-    private IUserService userService;
-    @Autowired
     private IPatientService patientService;
 
     @ApiOperation(value = "查询所有病人", notes = "查询当前用户的所有病人")
     @GetMapping("/allPatients")
     public List<Patient> getAllPatients(){
-        User user = userService.getAuthUser();
-        return patientService.getAllPateints(user.getId());
+        return patientService.getAllPateints();
     }
 
 
@@ -46,9 +41,12 @@ public class PatientController {
     @ApiOperationSupport(ignoreParameters = {"patient.id"})
     @PostMapping("/addPatient")
     public RespBean addPatient(@RequestBody Patient patient){
-        User user = userService.getAuthUser();
+        int impactLine;
         try {
-            return patientService.addPatient(patient, user.getId());
+            impactLine = patientService.addPatient(patient);
+            if(impactLine == 2){
+                return RespBean.success("添加病人成功");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             log.error("添加病人事务失败");

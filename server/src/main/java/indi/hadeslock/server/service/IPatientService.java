@@ -2,7 +2,6 @@ package indi.hadeslock.server.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import indi.hadeslock.server.model.entity.Patient;
-import indi.hadeslock.server.model.pojo.RespBean;
 
 import java.util.List;
 
@@ -21,14 +20,14 @@ public interface IPatientService extends IService<Patient> {
      * @time 2022/3/30 17:55
      * 获取当前用户对应的所有病人
      */
-    List<Patient> getAllPateints(int userId);
+    List<Patient> getAllPateints();
 
     /*
      * @author Hadeslock
      * @time 2022/3/30 18:08
      * 在当前已登录用户下添加病人信息
      */
-    RespBean addPatient(Patient patient, int userId);
+    int addPatient(Patient patient);
 
     /*
      * @author Hadeslock
