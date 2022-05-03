@@ -50,15 +50,24 @@ public class DetectionRecord implements Serializable {
     @ApiModelProperty(value = "关键时间信息")
     private String key_time;
 
+    @ApiModelProperty(value = "纬度")
+    private double latitude;
+
+    @ApiModelProperty(value = "经度")
+    private double longitude;
+
     public DetectionRecord() {
     }
 
-    public DetectionRecord(Integer deviceId, int patientId, Date date, Time startTime, Time endTime, String keyTime) {
+    public DetectionRecord(Integer deviceId, int patientId, Date date, Time startTime, Time endTime, String keyTime,
+                           double latitude, double longitude) {
         this.device_id = deviceId;
         this.patient_id = patientId;
         this.date = date;
         this.begin_time = startTime;
         this.end_time = endTime;
         this.key_time = keyTime;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 }
