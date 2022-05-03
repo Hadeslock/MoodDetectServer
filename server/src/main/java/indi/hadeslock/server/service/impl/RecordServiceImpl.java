@@ -48,6 +48,7 @@ public class RecordServiceImpl extends ServiceImpl<RecordMapper, Record> impleme
         Date date = Date.valueOf(dataMap.get("date"));
         Time startTime = Time.valueOf(dataMap.get("startTime"));
         Time endTime = Time.valueOf(dataMap.get("endTime"));
+        String keyTime = dataMap.get("keyTime");
         //根据deviceMac查出设备信息
         Device device = deviceMapper.selectOne(new QueryWrapper<Device>().eq("device_id", deviceMac));
         //先查一下指定的设备和病人在时间段内有没有记录
@@ -68,7 +69,7 @@ public class RecordServiceImpl extends ServiceImpl<RecordMapper, Record> impleme
         }
         //保存单次测试记录
         DetectionRecord detectionRecord =
-                new DetectionRecord(device.getId(), patientId, date, startTime, endTime);
+                new DetectionRecord(device.getId(), patientId, date, startTime, endTime, keyTime);
         detectionRecordMapper.insert(detectionRecord);
         //检查对应的病人记录表是否存在,不存在就创建
         String tblName = "t_" + patientId + "_detection_record";

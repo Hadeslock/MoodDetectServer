@@ -32,8 +32,8 @@ public class RecordController {
     @ApiOperation(value = "上传测试记录")
     @PostMapping("/upload")
     public RespBean uploadRecord(MultipartFile file) {
-        if (file==null || file.getSize() == 0) {
-            return  RespBean.error("文件异常");
+        if (file == null || file.getSize() == 0) {
+            return RespBean.error("文件异常");
         }
 
         //实体的集合，把csv中的列装在list里。
@@ -58,13 +58,15 @@ public class RecordController {
                 inputStream = file.getInputStream();
                 is = new InputStreamReader(inputStream, "GBK"); //编码格式要用GBK
                 reader = new BufferedReader(is);
-                //处理设备和病人的信息
+                //处理设备、病人信息
                 String line;
                 line = reader.readLine();  //第一行杂项信息
                 String[] splitData = line.split(",");
-                for (int i = 0; i*2 < splitData.length; i++) {
-                    dataMap.put(splitData[2*i], splitData[2*i+1]);
+                for (int i = 0; i * 2 < splitData.length; i++) {
+                    dataMap.put(splitData[2 * i], splitData[2 * i + 1]);
                 }
+                //处理关键时间点信息
+                dataMap.put("keyTime", reader.readLine());
                 //处理设备测量数据
                 while ((line = reader.readLine()) != null) {
                     //实体类
@@ -86,10 +88,10 @@ public class RecordController {
                 int n = list.size();
                 dataMap.put("date", list.get(0).getDate().toString());
                 dataMap.put("startTime", list.get(0).getTime().toString());
-                dataMap.put("endTime", list.get(n-1).getTime().toString());
+                dataMap.put("endTime", list.get(n - 1).getTime().toString());
             } catch (IOException e) {
                 e.printStackTrace();
-            }finally {
+            } finally {
                 try {
                     if (inputStream != null) {
                         inputStream.close();
@@ -105,10 +107,10 @@ public class RecordController {
                 }
             }
             //保存记录信息
-            if(recordService.saveRecords(dataMap, list) == 1){
+            if (recordService.saveRecords(dataMap, list) == 1) {
                 return RespBean.success("上传失败，时间段内已有记录，请勿重复添加");
             }
-        }else {
+        } else {
             return RespBean.error("上传文件格式错误");
         }
         return RespBean.success("导入成功");
